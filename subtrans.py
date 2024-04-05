@@ -3,25 +3,14 @@
 # @author: loricheung
 
 import os
-import sys
-import pdb
 import argparse
 import subprocess
 from getpass import getpass
 from typing import Union
+
 import openai
 import pysubs2
 from pysubs2 import Alignment, Color, SSAFile, SSAStyle
-
-
-def excepthook(type, value, traceback):
-    # 这是一个自定义的异常处理函数，会在程序出错时自动调用
-    print("An exception occurred, entering Python debugger.")
-    pdb.pm()
-
-
-# 将自定义的异常处理函数注册到sys.excepthook中
-sys.excepthook = excepthook
 
 
 def is_valid_key(key: str):
@@ -63,7 +52,7 @@ class SubtitleGenerator(object):
         self.video_name = ".".join(video.split(".")[:-1])
         self.max_split = max_split
         self.target_lang = target_lang
-        self.target_subtitle = pysubs2.SSAFile()
+        self.target_subtitle = SSAFile()
 
     def extract(self) -> Union[str, None]:
         output = subprocess.check_output(

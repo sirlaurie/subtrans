@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "subtrans"
+version = "0.1.0"
+description = "exrtact subtitle from video translate to other language"
+authors = ["sirlaurie <liusuzhang@gmail.com>"]
+license = "GPLv3"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pysubs2 = "^1.6.1"
+openai = "^0.28.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

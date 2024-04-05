@@ -147,8 +147,8 @@ class SubtitleGenerator(object):
         subs.styles = {
             "bottom": SSAStyle(
                 fontsize=16,
-                outline=0,
-                shadow=0,
+                outline=1,
+                shadow=0.5,
                 alignment=Alignment.BOTTOM_CENTER,
                 primarycolor=Color(240, 240, 240),
                 secondarycolor=Color(0, 0, 0),
@@ -156,8 +156,8 @@ class SubtitleGenerator(object):
             ),
             "top": SSAStyle(
                 fontsize=16,
-                outline=0,
-                shadow=0,
+                outline=1,
+                shadow=0.5,
                 alignment=Alignment.BOTTOM_CENTER,
                 primarycolor=Color(240, 240, 240),
                 secondarycolor=Color(0, 0, 0),

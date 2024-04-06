@@ -8,8 +8,8 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-pysubs2 = "^1.6.1"
-openai = "^0.28.1"
+pysubs2 = "^1.6.0"
+openai = "^1.0.0"
 
 
 [build-system]

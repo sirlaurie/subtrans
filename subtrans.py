@@ -8,7 +8,7 @@ import subprocess
 from getpass import getpass
 from typing import Union
 
-import openai
+from openai import OpenAI
 import pysubs2
 from pysubs2 import Alignment, Color, SSAFile, SSAStyle
 
@@ -29,8 +29,7 @@ else:
         else:
             print("无效的API Key. 请重试")
 
-
-openai.api_key = api_key
+openai_client = OpenAI(api_key=api_key)
 
 index_lang = {}
 
@@ -118,7 +117,7 @@ class SubtitleGenerator(object):
 
     def translate(self, subtitle: SSAFile) -> str:
         subtitle_content = subtitle.to_string("srt")
-        completion = openai.ChatCompletion.create(
+        completion = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             temperature=0,
             messages=[

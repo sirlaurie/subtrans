@@ -41,8 +41,16 @@ def pprint(sub_streams: str) -> None:
     print(f"{'索引':^4} | {'语言':^4} | {'样式':^28} |  {'字幕时长':^16}")
     for line in sub_streams.splitlines():
         parts = line.split(",")
+        index = parts[0]
+        language = parts[1]
+        if len(parts) == 4:
+            style = parts[2]
+            duration = parts[3]
+        else:
+            style = "None"
+            duration = parts[2]
         print(f"{'-'*6} | {'-'*6} | {'-'*30} | {'-'*20}")
-        print(f"{parts[0]:^6} | {parts[1]:^6} | {parts[2]:^30} | {parts[3]:^20}")
+        print(f"{index:^6} | {language:^6} | {style:^30} | {duration:^20}")
         index_lang[parts[0]] = parts[1]
 
 
@@ -55,7 +63,7 @@ class SubtitleGenerator(object):
         output_dir: str | None = None,
     ):
         self.video = video
-        self.video_name = ".".join(video.split(".")[:-1])
+        self.video_name = os.path.basename(".".join(video.split(".")[:-1]))
         self.max_split = max_split
         self.target_lang = target_lang
         self.target_subtitle = SSAFile()
@@ -171,8 +179,8 @@ class SubtitleGenerator(object):
         subs.styles = {
             "bottom": SSAStyle(
                 fontsize=16,
-                outline=1,
-                shadow=0.5,
+                outline=0.5,
+                shadow=0.3,
                 alignment=Alignment.BOTTOM_CENTER,
                 primarycolor=Color(240, 240, 240),
                 secondarycolor=Color(0, 0, 0),
@@ -180,8 +188,8 @@ class SubtitleGenerator(object):
             ),
             "top": SSAStyle(
                 fontsize=16,
-                outline=1,
-                shadow=0.5,
+                outline=0.5,
+                shadow=0.3,
                 alignment=Alignment.BOTTOM_CENTER,
                 primarycolor=Color(240, 240, 240),
                 secondarycolor=Color(0, 0, 0),

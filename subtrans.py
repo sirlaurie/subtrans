@@ -57,20 +57,20 @@ def pprint(sub_streams: str) -> None:
 class SubtitleGenerator(object):
     def __init__(
         self,
-        video: str,
+        file: str,
         target_lang: str = "简体中文",
         max_split: int = 80,
         output_dir: str | None = None,
     ):
-        self.video = video
-        self.video_name = os.path.basename(".".join(video.split(".")[:-1]))
+        self.file = file
+        self.file_name = os.path.basename(".".join(file.split(".")[:-1]))
         self.max_split = max_split
         self.target_lang = target_lang
         self.target_subtitle = SSAFile()
         self.output_dir = output_dir
+        self.input_dir = os.path.dirname(os.path.abspath(self.file))
 
     def extract(self) -> Union[str, None]:
-        self.input_dir = os.path.dirname(os.path.abspath(self.video))
         output = subprocess.check_output(
             [
                 "ffprobe",
@@ -82,7 +82,7 @@ class SubtitleGenerator(object):
                 "stream=index:stream_tags=language:stream_tags=DURATION:stream_tags=codec_name:stream_tags=title",
                 "-of",
                 "csv=p=0",
-                f"{self.video}",
+                f"{self.file}",
             ]
         )
         if not output:
@@ -93,10 +93,10 @@ class SubtitleGenerator(object):
         pprint(sub_streams)
 
         index = input("选择字幕流: ")
-        target_sub_file = os.path.join(self.input_dir, f"{self.video_name}.srt")
+        target_sub_file = os.path.join(self.input_dir, f"{self.file_name}.srt")
         if self.output_dir:
             target_sub_file = os.path.join(
-                os.path.abspath(self.output_dir), f"{self.video_name}.srt"
+                os.path.abspath(self.output_dir), f"{self.file_name}.srt"
             )
         print("抽取已选择的字幕流 ... ", end="")
 
@@ -106,7 +106,7 @@ class SubtitleGenerator(object):
                 "-loglevel",
                 "error",
                 "-i",
-                f"{self.video}",
+                f"{self.file}",
                 "-map",
                 f"0:{index}",
                 f"{target_sub_file}",
@@ -146,7 +146,16 @@ class SubtitleGenerator(object):
             messages=[
                 {
                     "role": "system",
-                    "content": f"你是一个专业的电影字幕翻译人员, 擅长从各种语言翻译为中文. 用户会将带有时间轴信息的字幕发送给你, 你要先完整理解字幕内容, 然后保留字幕的序列号和时间轴信息, 将字幕翻译为{self.target_lang}. 要求: 1,保持输出内容格式和输入内容格式相同.2,保留字幕中的人名和专有名词和缩写.3,输出内容要符合中文使用习惯,也要符合上下文.4,确保不要遗漏字幕.5,翻译完成后校验原始字幕和翻译字幕的最后3条的序列号,时间轴和字幕意思是否相同.如果不同,请重新翻译.6,不要输出校验结果到字幕内, 否则你会被罚款100美元.7,遵守以上所有要求,完成后你将得到1000美元的奖励",
+                    "content": f"""
+                    你是一个专业的电影字幕翻译人员, 擅长从各种语言翻译为中文. 用户会将带有时间轴信息的字幕发送给你, 你要先完整理解字幕内容, 然后保留字幕的序列号和时间轴信息, 将字幕翻译为{self.target_lang}.
+                    要求:
+                      - 保持输出内容格式和输入内容格式相同
+                      - 删除原文和译文中的换行符
+                      - 删除原文和译文中的样式标记, 如</i>或者</b>
+                      - 保留字幕中的人名,地名,专有名词和缩写
+                      - 输出内容要符合中文使用习惯,也要符合上下文
+                      - 确保不要遗漏字幕, 否则你会被罚款100美元
+                      - 遵守以上所有要求,你将得到1000美元的报酬""",
                 },
                 {
                     "role": "user",
@@ -177,38 +186,42 @@ class SubtitleGenerator(object):
         print("生成ass字幕文件 ... ", end="")
         subs = SSAFile()
         subs.styles = {
-            "bottom": SSAStyle(
-                fontsize=16,
-                outline=0.5,
-                shadow=0.3,
-                alignment=Alignment.BOTTOM_CENTER,
-                primarycolor=Color(240, 240, 240),
-                secondarycolor=Color(0, 0, 0),
-                outlinecolor=Color(0, 0, 0),
-            ),
             "top": SSAStyle(
                 fontsize=16,
                 outline=0.5,
                 shadow=0.3,
+                italic=False,
                 alignment=Alignment.BOTTOM_CENTER,
-                primarycolor=Color(240, 240, 240),
+                primarycolor=Color(211, 211, 211),
                 secondarycolor=Color(0, 0, 0),
                 outlinecolor=Color(0, 0, 0),
+                backcolor=Color(0, 0, 0, 100),
+            ),
+            "bottom": SSAStyle(
+                fontsize=16,
+                outline=0.5,
+                shadow=0.3,
+                italic=False,
+                alignment=Alignment.BOTTOM_CENTER,
+                primarycolor=Color(14, 149, 206),
+                secondarycolor=Color(0, 0, 0),
+                outlinecolor=Color(0, 0, 0),
+                backcolor=Color(0, 0, 0, 100),
             ),
         }
         for e in self.source_subtitle:
             e.style = "bottom"
             subs.append(e)
         for e in self.target_subtitle:
-            e.style = "bottom"
+            e.style = "top"
             subs.append(e)
 
-        output_dir = os.path.dirname(self.video)
+        output_dir = os.path.dirname(self.file)
         if self.output_dir:
             output_dir = self.output_dir
         else:
             output_dir = self.input_dir
-        subs.save(os.path.join(output_dir, f"{self.video_name}.ass"))
+        subs.save(os.path.join(output_dir, f"{self.file_name}.ass"))
         print("OK!")
 
 
@@ -217,7 +230,7 @@ def main():
         description="抽取视频字幕流, 使用OpenAI GPT-3.5翻译, 生成目标语言的字幕"
     )
     parser.add_argument(
-        "-v, --video", type=str, dest="video", required=True, help="视频文件路径"
+        "-f, --file", type=str, dest="file", required=True, help="文件路径"
     )
     parser.add_argument(
         "-t, --target-lang",
@@ -244,16 +257,19 @@ def main():
     args = parser.parse_args()
 
     subtitle_generator = SubtitleGenerator(
-        args.video,
+        args.file,
         target_lang=args.targetlang,
         max_split=args.maxsplit,
         output_dir=args.outputdir,
     )
 
-    subtitle_file = subtitle_generator.extract()
-    if not subtitle_file:
-        print("没有字幕文件被导出")
-        return
+    if args.file.endswith("srt"):
+        subtitle_file = args.file
+    else:
+        subtitle_file = subtitle_generator.extract()
+        if not subtitle_file:
+            print("没有字幕文件被导出")
+            return
     subtitle_generator.load(subtitle_file=subtitle_file)
     subtitle_generator.split_and_translate()
     subtitle_generator.generate_ass()
